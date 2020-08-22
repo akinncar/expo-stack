@@ -10,6 +10,7 @@
   "dependencies": {
     "expo": "~38.0.8",
     "expo-gl": "^8.4.0",
+    "expo-linear-gradient": "~8.2.1",
     "expo-status-bar": "^1.0.2",
     "expo-three": "^5.5.1",
     "react": "~16.11.0",

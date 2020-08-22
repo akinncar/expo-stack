@@ -13,25 +13,33 @@ import {
   Scene,
   SpotLight,
 } from "three";
-import { TouchableWithoutFeedback } from "react-native";
+import { View, TouchableWithoutFeedback, Dimensions } from "react-native";
+
+import { LinearGradient } from "expo-linear-gradient";
 
 export default function App() {
   let timeout: number;
-  // let timer:number | any = null;
-
-  // let cubes: CubeMesh[] = [];
   let direction: number = 0;
 
   const [scene, setScene] = useState<Scene>(new Scene());
   const [camera, setCamera] = useState<PerspectiveCamera>(
-    new PerspectiveCamera(25, 2, 1, 1000)
+    new PerspectiveCamera(
+      25,
+      Dimensions.get("window").width / Dimensions.get("window").height,
+      0.01,
+      1000
+    )
   );
+  const [pointLight, setPointLight] = useState<PointLight>(
+    new PointLight(0xffffff, 2, 1000, 1)
+  );
+
   const [timer, setTimer] = useState<number | any>(null);
 
   const [actualCubeIndex, setActualCubeIndex] = useState(0);
   const [cubes, setCubes] = useState<CubeMesh[]>([
-    new CubeMesh(),
-    new CubeMesh(),
+    new CubeMesh("#F46790"),
+    new CubeMesh("#F46790"),
   ]);
 
   useEffect(() => {
@@ -61,7 +69,7 @@ export default function App() {
   }, [actualCubeIndex]);
 
   async function addNewCube() {
-    setCubes([...cubes, new CubeMesh()]);
+    setCubes([...cubes, new CubeMesh("#F46790")]);
     camera.translateY(0.2);
     camera.translateZ(0.2);
     // await startFrontMove();
@@ -106,66 +114,70 @@ export default function App() {
   }
 
   return (
-    <TouchableWithoutFeedback
-      style={{ flex: 1 }}
-      onPress={() => {
-        addNewCube();
-      }}
-    >
-      <GLView
+    <LinearGradient style={{ flex: 1 }} colors={["#129fba", "#fff"]}>
+      <TouchableWithoutFeedback
         style={{ flex: 1 }}
-        onContextCreate={async (gl: ExpoWebGLRenderingContext) => {
-          console.log("oi");
-
-          const { drawingBufferWidth: width, drawingBufferHeight: height } = gl;
-          const sceneColor = 0x6ad6f0;
-
-          // Create a WebGLRenderer without a DOM element
-          const renderer = new Renderer({ gl });
-          renderer.setSize(width, height);
-          renderer.setClearColor(sceneColor);
-
-          camera.position.set(3, 2, 3);
-
-          scene.fog = new Fog(sceneColor, 1, 10000);
-          // scene.add(new GridHelper(10, 10));
-
-          const ambientLight = new AmbientLight(0x101010);
-          scene.add(ambientLight);
-
-          const pointLight = new PointLight(0xffffff, 2, 1000, 1);
-          pointLight.position.set(3, 2, 16);
-
-          scene.add(pointLight);
-
-          const spotLight = new SpotLight(0xffffff, 0.5);
-          spotLight.position.set(0, 500, 100);
-          spotLight.lookAt(scene.position);
-          scene.add(spotLight);
-
-          camera.lookAt(cubes[0].position);
-
-          // Setup an animation loop
-          const render = () => {
-            timeout = requestAnimationFrame(render);
-            renderer.render(scene, camera);
-
-            gl.endFrameEXP();
-          };
-          render();
+        onPress={() => {
+          addNewCube();
         }}
-      />
-    </TouchableWithoutFeedback>
+      >
+        <GLView
+          style={{ flex: 1 }}
+          onContextCreate={async (gl: ExpoWebGLRenderingContext) => {
+            console.log("oi");
+
+            const {
+              drawingBufferWidth: width,
+              drawingBufferHeight: height,
+            } = gl;
+            const sceneColor = 0x129fba;
+
+            // Create a WebGLRenderer without a DOM element
+            const renderer = new Renderer({ gl });
+            renderer.setSize(width, height);
+            // renderer.setClearColor(sceneColor);
+
+            camera.position.set(3, 2, 3);
+
+            scene.fog = new Fog(sceneColor, 1, 10000);
+            // scene.add(new GridHelper(10, 10));
+
+            const ambientLight = new AmbientLight(0x101010);
+            scene.add(ambientLight);
+
+            pointLight.position.set(3, 2, 16);
+
+            scene.add(pointLight);
+
+            const spotLight = new SpotLight(0xffffff, 0.5);
+            spotLight.position.set(0, 500, 100);
+            spotLight.lookAt(scene.position);
+            scene.add(spotLight);
+
+            camera.lookAt(cubes[0].position);
+
+            // Setup an animation loop
+            const render = () => {
+              timeout = requestAnimationFrame(render);
+              renderer.render(scene, camera);
+
+              gl.endFrameEXP();
+            };
+            render();
+          }}
+        />
+      </TouchableWithoutFeedback>
+    </LinearGradient>
   );
 }
 
 class CubeMesh extends Mesh {
-  constructor() {
+  constructor(color: string | number) {
     super(
       new BoxBufferGeometry(1.0, 0.2, 1.0),
       new MeshStandardMaterial({
         // map: new TextureLoader().load(require('./assets/icon.png')),
-        color: 0xff0000,
+        color: color,
       })
     );
   }
