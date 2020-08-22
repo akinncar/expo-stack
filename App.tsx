@@ -17,54 +17,88 @@ import { TouchableWithoutFeedback } from "react-native";
 
 export default function App() {
   let timeout: number;
-  let timer: number | any = null;
+  // let timer:number | any = null;
 
-  let cubes: CubeMesh[] = [];
+  // let cubes: CubeMesh[] = [];
   let direction: number = 0;
 
-  const [actualCubeIndex, setActualCubeIndex] = useState(1);
+  const [scene, setScene] = useState<Scene>(new Scene());
+  const [camera, setCamera] = useState<PerspectiveCamera>(
+    new PerspectiveCamera(25, 2, 1, 1000)
+  );
+  const [timer, setTimer] = useState<number | any>(null);
 
-  cubes.push(new CubeMesh());
-  cubes.push(new CubeMesh());
+  const [actualCubeIndex, setActualCubeIndex] = useState(0);
+  const [cubes, setCubes] = useState<CubeMesh[]>([
+    new CubeMesh(),
+    new CubeMesh(),
+  ]);
 
   useEffect(() => {
-    cubes[1].translateY(0.1);
-
     startFrontMove();
 
     return () => clearTimeout(timeout);
   }, []);
 
   useEffect(() => {
+    setActualCubeIndex(actualCubeIndex + 1);
+  }, [cubes]);
+
+  useEffect(() => {
     console.log("actualCubeIndex:", actualCubeIndex);
-    addNewCube();
+
+    if (actualCubeIndex == 1) {
+      startFrontMove();
+    }
+
+    if (actualCubeIndex > 1) {
+      stopFrontMove();
+      startFrontMove();
+    }
+
+    scene.add(cubes[actualCubeIndex]);
+    cubes[actualCubeIndex].translateY(actualCubeIndex * 0.2);
   }, [actualCubeIndex]);
 
   async function addNewCube() {
-    if (actualCubeIndex > 1) {
-      stopFrontMove();
-      cubes.push(new CubeMesh());
-      cubes[actualCubeIndex].translateY(actualCubeIndex * 0.1);
-      startFrontMove();
-    }
+    setCubes([...cubes, new CubeMesh()]);
+    camera.translateY(0.2);
+    camera.translateZ(0.2);
+    // await startFrontMove();
   }
 
   function startFrontMove() {
-    console.log(actualCubeIndex);
+    if (actualCubeIndex > 0) {
+      if (actualCubeIndex & 1) {
+        if (cubes[actualCubeIndex].position.z < -1.3) {
+          direction = 1;
+        } else if (cubes[actualCubeIndex].position.z > 1.3) {
+          direction = 0;
+        }
 
-    if (cubes[actualCubeIndex].position.z < -1) {
-      direction = 1;
-    } else if (cubes[actualCubeIndex].position.z > 1) {
-      direction = 0;
+        if (direction == 0) {
+          cubes[actualCubeIndex].translateZ(-0.02);
+        } else {
+          cubes[actualCubeIndex].translateZ(+0.02);
+        }
+
+        setTimer(setTimeout(startFrontMove, 12));
+      } else {
+        if (cubes[actualCubeIndex].position.x < -1.3) {
+          direction = 1;
+        } else if (cubes[actualCubeIndex].position.x > 1.3) {
+          direction = 0;
+        }
+
+        if (direction == 0) {
+          cubes[actualCubeIndex].translateX(-0.02);
+        } else {
+          cubes[actualCubeIndex].translateX(+0.02);
+        }
+
+        setTimer(setTimeout(startFrontMove, 12));
+      }
     }
-
-    if (direction == 0) {
-      cubes[actualCubeIndex].translateZ(-0.08);
-    } else {
-      cubes[actualCubeIndex].translateZ(+0.08);
-    }
-
-    timer = setTimeout(startFrontMove, 50);
   }
 
   function stopFrontMove() {
@@ -75,12 +109,14 @@ export default function App() {
     <TouchableWithoutFeedback
       style={{ flex: 1 }}
       onPress={() => {
-        setActualCubeIndex(actualCubeIndex + 1);
+        addNewCube();
       }}
     >
       <GLView
         style={{ flex: 1 }}
         onContextCreate={async (gl: ExpoWebGLRenderingContext) => {
+          console.log("oi");
+
           const { drawingBufferWidth: width, drawingBufferHeight: height } = gl;
           const sceneColor = 0x6ad6f0;
 
@@ -89,27 +125,23 @@ export default function App() {
           renderer.setSize(width, height);
           renderer.setClearColor(sceneColor);
 
-          const camera = new PerspectiveCamera(40, width / 800, 0.1, 1000);
           camera.position.set(3, 2, 3);
 
-          const scene = new Scene();
           scene.fog = new Fog(sceneColor, 1, 10000);
-          scene.add(new GridHelper(10, 10));
+          // scene.add(new GridHelper(10, 10));
 
           const ambientLight = new AmbientLight(0x101010);
           scene.add(ambientLight);
 
           const pointLight = new PointLight(0xffffff, 2, 1000, 1);
-          pointLight.position.set(0, 200, 200);
+          pointLight.position.set(3, 2, 16);
+
           scene.add(pointLight);
 
           const spotLight = new SpotLight(0xffffff, 0.5);
           spotLight.position.set(0, 500, 100);
           spotLight.lookAt(scene.position);
           scene.add(spotLight);
-
-          scene.add(cubes[0]);
-          scene.add(cubes[1]);
 
           camera.lookAt(cubes[0].position);
 
@@ -130,7 +162,7 @@ export default function App() {
 class CubeMesh extends Mesh {
   constructor() {
     super(
-      new BoxBufferGeometry(1.0, 0.1, 1.0),
+      new BoxBufferGeometry(1.0, 0.2, 1.0),
       new MeshStandardMaterial({
         // map: new TextureLoader().load(require('./assets/icon.png')),
         color: 0xff0000,
