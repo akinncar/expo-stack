@@ -38,8 +38,8 @@ export default function App() {
 
   const [actualCubeIndex, setActualCubeIndex] = useState(0);
   const [cubes, setCubes] = useState<CubeMesh[]>([
-    new CubeMesh("#F46790"),
-    new CubeMesh("#F46790"),
+    new CubeMesh(1.0,1.0,"#F46790"),
+    new CubeMesh(1.0,1.0,"#F46790"),
   ]);
 
   useEffect(() => {
@@ -65,11 +65,23 @@ export default function App() {
     }
 
     scene.add(cubes[actualCubeIndex]);
-    cubes[actualCubeIndex].translateY(actualCubeIndex * 0.2);
+    cubes[actualCubeIndex].translateY((actualCubeIndex * 0.2) + 0.2);
   }, [actualCubeIndex]);
 
   async function addNewCube() {
-    setCubes([...cubes, new CubeMesh("#F46790")]);
+    let actualCube = cubes[cubes.length - 1];
+    let lastCube = cubes[cubes.length - 2];
+
+    console.log(actualCube);
+    console.log(lastCube);
+
+    let newCubeX = actualCube.position.x > 0 ? 1.0 - actualCube.position.x : -1.0 - actualCube.position.x;
+    let newCubeZ = actualCube.position.z > 0 ? 1.0 - actualCube.position.z : -1.0 - actualCube.position.z;
+
+    let newCube = new CubeMesh(newCubeX , newCubeZ, "#F46790");
+    newCube.translateZ(newCubeZ);
+
+    setCubes([...cubes, newCube]);
     camera.translateY(0.2);
     camera.translateZ(0.2);
     // await startFrontMove();
@@ -172,9 +184,9 @@ export default function App() {
 }
 
 class CubeMesh extends Mesh {
-  constructor(color: string | number) {
+  constructor(x: float, z: float, color: string | number) {
     super(
-      new BoxBufferGeometry(1.0, 0.2, 1.0),
+      new BoxBufferGeometry(x ?? 1.0, 0.2, z ?? 1.0),
       new MeshStandardMaterial({
         // map: new TextureLoader().load(require('./assets/icon.png')),
         color: color,
