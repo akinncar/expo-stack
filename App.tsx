@@ -38,8 +38,8 @@ export default function App() {
 
   const [actualCubeIndex, setActualCubeIndex] = useState(0);
   const [cubes, setCubes] = useState<CubeMesh[]>([
-    new CubeMesh(1.0,1.0,"#F46790"),
-    new CubeMesh(1.0,1.0,"#F46790"),
+    new CubeMesh(1.0, 1.0, "#F46790"),
+    new CubeMesh(1.0, 1.0, "#F46790"),
   ]);
 
   useEffect(() => {
@@ -65,26 +65,33 @@ export default function App() {
     }
 
     scene.add(cubes[actualCubeIndex]);
-    cubes[actualCubeIndex].translateY((actualCubeIndex * 0.2) + 0.2);
+    cubes[actualCubeIndex].translateY(actualCubeIndex * 0.2 + 0.2);
   }, [actualCubeIndex]);
 
   async function addNewCube() {
     let actualCube = cubes[cubes.length - 1];
     let lastCube = cubes[cubes.length - 2];
+    let newCube: CubeMesh;
 
-    console.log(actualCube);
-    console.log(lastCube);
+    if (actualCubeIndex & 1) {
+      let newCubeZ =
+        actualCube.scale.z -
+        (lastCube.position.z - -Math.abs(actualCube.position.z));
 
-    let newCubeX = actualCube.position.x > 0 ? 1.0 - actualCube.position.x : -1.0 - actualCube.position.x;
-    let newCubeZ = actualCube.position.z > 0 ? 1.0 - actualCube.position.z : -1.0 - actualCube.position.z;
+      newCube = new CubeMesh(actualCube.scale.x, newCubeZ, "#F46790");
+      newCube.translateZ(-(lastCube.position.z - actualCube.position.z) / 2);
+    } else {
+      let newCubeX =
+        actualCube.scale.x -
+        (lastCube.position.x - -Math.abs(actualCube.position.x));
 
-    let newCube = new CubeMesh(newCubeX , newCubeZ, "#F46790");
-    newCube.translateZ(newCubeZ);
+      newCube = new CubeMesh(newCubeX, actualCube.scale.z, "#F46790");
+      newCube.translateX(-(lastCube.position.x - actualCube.position.x) / 2);
+    }
 
     setCubes([...cubes, newCube]);
     camera.translateY(0.2);
     camera.translateZ(0.2);
-    // await startFrontMove();
   }
 
   function startFrontMove() {
@@ -136,8 +143,6 @@ export default function App() {
         <GLView
           style={{ flex: 1 }}
           onContextCreate={async (gl: ExpoWebGLRenderingContext) => {
-            console.log("oi");
-
             const {
               drawingBufferWidth: width,
               drawingBufferHeight: height,
@@ -149,7 +154,7 @@ export default function App() {
             renderer.setSize(width, height);
             // renderer.setClearColor(sceneColor);
 
-            camera.position.set(3, 2, 3);
+            camera.position.set(3, 5, 0);
 
             scene.fog = new Fog(sceneColor, 1, 10000);
             // scene.add(new GridHelper(10, 10));
@@ -184,7 +189,7 @@ export default function App() {
 }
 
 class CubeMesh extends Mesh {
-  constructor(x: float, z: float, color: string | number) {
+  constructor(x: number, z: number, color: string | number) {
     super(
       new BoxBufferGeometry(x ?? 1.0, 0.2, z ?? 1.0),
       new MeshStandardMaterial({
