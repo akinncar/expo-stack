@@ -71,6 +71,7 @@ export default function App() {
   async function addNewCube() {
     let actualCube = cubes[cubes.length - 1];
     let lastCube = cubes[cubes.length - 2];
+
     let newCube: CubeMesh;
 
     if (actualCubeIndex & 1) {
@@ -88,6 +89,12 @@ export default function App() {
       newCube = new CubeMesh(newCubeX, actualCube.scale.z, "#F46790");
       newCube.translateX(-(lastCube.position.x - actualCube.position.x) / 2);
     }
+
+    // setCubes(
+    //   cubes.map((cube: CubeMesh, index: number) =>
+    //     index === cubes.length - 1 ? Object.assign({}, newCube) : cube
+    //   )
+    // );
 
     setCubes([...cubes, newCube]);
     camera.translateY(0.2);
