@@ -69,8 +69,11 @@ export default function App() {
   }, [actualCubeIndex]);
 
   async function addNewCube() {
-    let actualCube = cubes[cubes.length - 1];
-    let lastCube = cubes[cubes.length - 2];
+    var actualCube = cubes[cubes.length - 1];
+    var lastCube = cubes[cubes.length - 2];
+
+    console.log("actualCube:", actualCube);
+    console.log("lastCube:", lastCube);
 
     let newCube: CubeMesh;
 
@@ -81,6 +84,9 @@ export default function App() {
 
       newCube = new CubeMesh(actualCube.scale.x, newCubeZ, "#F46790");
       newCube.translateZ(-(lastCube.position.z - actualCube.position.z) / 2);
+
+      actualCube.scale.set(newCube.scale.x, newCube.scale.y, newCubeZ);
+      actualCube.translateZ((lastCube.position.z - actualCube.position.z) / 2);
     } else {
       let newCubeX =
         actualCube.scale.x -
@@ -88,13 +94,10 @@ export default function App() {
 
       newCube = new CubeMesh(newCubeX, actualCube.scale.z, "#F46790");
       newCube.translateX(-(lastCube.position.x - actualCube.position.x) / 2);
-    }
 
-    // setCubes(
-    //   cubes.map((cube: CubeMesh, index: number) =>
-    //     index === cubes.length - 1 ? Object.assign({}, newCube) : cube
-    //   )
-    // );
+      actualCube.scale.set(newCubeX, newCube.scale.y, newCube.scale.z);
+      actualCube.translateX((lastCube.position.x - actualCube.position.x) / 2);
+    }
 
     setCubes([...cubes, newCube]);
     camera.translateY(0.2);
@@ -164,7 +167,7 @@ export default function App() {
             camera.position.set(3, 5, 0);
 
             scene.fog = new Fog(sceneColor, 1, 10000);
-            // scene.add(new GridHelper(10, 10));
+            scene.add(new GridHelper(10, 10));
 
             const ambientLight = new AmbientLight(0x101010);
             scene.add(ambientLight);
