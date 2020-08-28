@@ -50,19 +50,13 @@ export default function App() {
 
   useEffect(() => {
     setActualCubeIndex(actualCubeIndex + 1);
+    console.log("cubes:", cubes);
   }, [cubes]);
 
   useEffect(() => {
     console.log("actualCubeIndex:", actualCubeIndex);
 
-    if (actualCubeIndex == 1) {
-      startFrontMove();
-    }
-
-    if (actualCubeIndex > 1) {
-      stopFrontMove();
-      startFrontMove();
-    }
+    startFrontMove();
 
     scene.add(cubes[actualCubeIndex]);
     cubes[actualCubeIndex].translateY(actualCubeIndex * 0.2 + 0.2);
@@ -70,36 +64,53 @@ export default function App() {
 
   async function addNewCube() {
     var actualCube = cubes[cubes.length - 1];
-    var lastCube = cubes[cubes.length - 2];
+    let lastCube = cubes[cubes.length - 2];
 
     console.log("actualCube:", actualCube);
     console.log("lastCube:", lastCube);
 
+    stopFrontMove();
+
     let newCube: CubeMesh;
 
+    let newCubeX =
+      actualCube.scale.x -
+      Math.abs(actualCube.position.x) -
+      lastCube.position.x;
+
+    let newCubeZ =
+      actualCube.scale.z -
+      Math.abs(actualCube.position.z) -
+      lastCube.position.z;
+
+    newCube = new CubeMesh(1, 1, "#F46790");
+
     if (actualCubeIndex & 1) {
-      let newCubeZ =
-        actualCube.scale.z -
-        (lastCube.position.z - -Math.abs(actualCube.position.z));
-
-      newCube = new CubeMesh(actualCube.scale.x, newCubeZ, "#F46790");
-      newCube.translateZ(-(lastCube.position.z - actualCube.position.z) / 2);
-
-      actualCube.scale.set(newCube.scale.x, newCube.scale.y, newCubeZ);
-      actualCube.translateZ((lastCube.position.z - actualCube.position.z) / 2);
-    } else {
-      let newCubeX =
-        actualCube.scale.x -
-        (lastCube.position.x - -Math.abs(actualCube.position.x));
-
-      newCube = new CubeMesh(newCubeX, actualCube.scale.z, "#F46790");
-      newCube.translateX(-(lastCube.position.x - actualCube.position.x) / 2);
-
-      actualCube.scale.set(newCubeX, newCube.scale.y, newCube.scale.z);
+      actualCube.scale.set(newCubeX, newCube.scale.y, newCubeZ);
       actualCube.translateX((lastCube.position.x - actualCube.position.x) / 2);
+      actualCube.translateZ((lastCube.position.z - actualCube.position.z) / 2);
+
+      newCube.scale.set(actualCube.scale.x, newCube.scale.y, newCubeZ);
+      newCube.position.setX(actualCube.position.x);
+      newCube.position.setZ(actualCube.position.z);
+    } else {
+      actualCube.scale.set(newCubeX, newCube.scale.y, newCubeZ);
+      actualCube.translateX((lastCube.position.x - actualCube.position.x) / 2);
+      actualCube.translateZ((lastCube.position.z - actualCube.position.z) / 2);
+
+      newCube.scale.set(newCubeX, newCube.scale.y, actualCube.scale.z);
+      newCube.position.setX(actualCube.position.x);
+      newCube.position.setZ(actualCube.position.z);
     }
 
-    setCubes([...cubes, newCube]);
+    let cubesCopy: CubeMesh[] = [...cubes];
+
+    cubesCopy[cubes.length - 1] = actualCube;
+    cubesCopy[cubes.length - 2] = lastCube;
+
+    console.log("cubesCopy:", cubesCopy);
+
+    setCubes([...cubesCopy, newCube]);
     camera.translateY(0.2);
     camera.translateZ(0.2);
   }
@@ -201,7 +212,7 @@ export default function App() {
 class CubeMesh extends Mesh {
   constructor(x: number, z: number, color: string | number) {
     super(
-      new BoxBufferGeometry(x ?? 1.0, 0.2, z ?? 1.0),
+      new BoxBufferGeometry(x, 0.2, z),
       new MeshStandardMaterial({
         // map: new TextureLoader().load(require('./assets/icon.png')),
         color: color,
