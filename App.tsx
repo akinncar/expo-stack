@@ -86,7 +86,7 @@ export default function App() {
     newCube = new CubeMesh(1, 1, "#F46790");
 
     if (actualCubeIndex & 1) {
-      actualCube.scale.set(newCubeX, newCube.scale.y, newCubeZ);
+      actualCube.scale.set(actualCube.scale.x, newCube.scale.y, newCubeZ);
       actualCube.translateX((lastCube.position.x - actualCube.position.x) / 2);
       actualCube.translateZ((lastCube.position.z - actualCube.position.z) / 2);
 
@@ -94,7 +94,7 @@ export default function App() {
       newCube.position.setX(actualCube.position.x);
       newCube.position.setZ(actualCube.position.z);
     } else {
-      actualCube.scale.set(newCubeX, newCube.scale.y, newCubeZ);
+      actualCube.scale.set(newCubeX, newCube.scale.y, actualCube.scale.z);
       actualCube.translateX((lastCube.position.x - actualCube.position.x) / 2);
       actualCube.translateZ((lastCube.position.z - actualCube.position.z) / 2);
 
