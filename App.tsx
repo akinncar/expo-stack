@@ -13,7 +13,12 @@ import {
   Scene,
   SpotLight,
 } from "three";
-import { View, TouchableWithoutFeedback, Dimensions } from "react-native";
+import {
+  View,
+  TouchableWithoutFeedback,
+  Dimensions,
+  Alert,
+} from "react-native";
 
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -51,6 +56,16 @@ export default function App() {
   useEffect(() => {
     setActualCubeIndex(actualCubeIndex + 1);
     console.log("cubes:", cubes);
+
+    if (cubes.length == 2) {
+      cubes[0].translateX(3);
+      cubes[0].translateZ(3);
+      cubes[1].translateX(3);
+      cubes[1].translateZ(3);
+
+      camera.position.set(6, 5, 6);
+      camera.lookAt(cubes[0].position);
+    }
   }, [cubes]);
 
   useEffect(() => {
@@ -66,8 +81,18 @@ export default function App() {
     var actualCube = cubes[cubes.length - 1];
     let lastCube = cubes[cubes.length - 2];
 
-    console.log("actualCube:", actualCube);
-    console.log("lastCube:", lastCube);
+    console.log("actualCube position:", actualCube.position);
+    console.log("actualCube scale:", actualCube.scale);
+    console.log("lastCube position:", lastCube.position);
+    console.log("lastCube scale:", lastCube.scale);
+
+    // if (
+    //   actualCube.position.z - actualCube.scale.z / 2 >
+    //   lastCube.position.z - lastCube.scale.z / 2
+    // ) {
+    //   stopFrontMove();
+    //   return Alert.alert("Você perdeu");
+    // }
 
     stopFrontMove();
 
@@ -75,30 +100,28 @@ export default function App() {
 
     let newCubeX =
       actualCube.scale.x -
-      Math.abs(actualCube.position.x) -
-      lastCube.position.x;
+      Math.abs(actualCube.position.x - lastCube.position.x);
 
     let newCubeZ =
       actualCube.scale.z -
-      Math.abs(actualCube.position.z) -
-      lastCube.position.z;
+      Math.abs(actualCube.position.z - lastCube.position.z);
 
     newCube = new CubeMesh(1, 1, "#F46790");
 
     if (actualCubeIndex & 1) {
-      actualCube.scale.set(actualCube.scale.x, newCube.scale.y, newCubeZ);
+      actualCube.scale.set(newCubeX, newCube.scale.y, newCubeZ);
       actualCube.translateX((lastCube.position.x - actualCube.position.x) / 2);
       actualCube.translateZ((lastCube.position.z - actualCube.position.z) / 2);
 
-      newCube.scale.set(actualCube.scale.x, newCube.scale.y, newCubeZ);
+      newCube.scale.set(newCubeX, newCube.scale.y, newCubeZ);
       newCube.position.setX(actualCube.position.x);
       newCube.position.setZ(actualCube.position.z);
     } else {
-      actualCube.scale.set(newCubeX, newCube.scale.y, actualCube.scale.z);
+      actualCube.scale.set(newCubeX, newCube.scale.y, newCubeZ);
       actualCube.translateX((lastCube.position.x - actualCube.position.x) / 2);
       actualCube.translateZ((lastCube.position.z - actualCube.position.z) / 2);
 
-      newCube.scale.set(newCubeX, newCube.scale.y, actualCube.scale.z);
+      newCube.scale.set(newCubeX, newCube.scale.y, newCubeZ);
       newCube.position.setX(actualCube.position.x);
       newCube.position.setZ(actualCube.position.z);
     }
@@ -108,7 +131,7 @@ export default function App() {
     cubesCopy[cubes.length - 1] = actualCube;
     cubesCopy[cubes.length - 2] = lastCube;
 
-    console.log("cubesCopy:", cubesCopy);
+    cubesCopy.map((item) => console.log(item.scale));
 
     setCubes([...cubesCopy, newCube]);
     camera.translateY(0.2);
@@ -118,9 +141,9 @@ export default function App() {
   function startFrontMove() {
     if (actualCubeIndex > 0) {
       if (actualCubeIndex & 1) {
-        if (cubes[actualCubeIndex].position.z < -1.3) {
+        if (cubes[actualCubeIndex].position.z < 1.5) {
           direction = 1;
-        } else if (cubes[actualCubeIndex].position.z > 1.3) {
+        } else if (cubes[actualCubeIndex].position.z > 4.5) {
           direction = 0;
         }
 
@@ -132,9 +155,9 @@ export default function App() {
 
         setTimer(setTimeout(startFrontMove, 12));
       } else {
-        if (cubes[actualCubeIndex].position.x < -1.3) {
+        if (cubes[actualCubeIndex].position.x < 1.5) {
           direction = 1;
-        } else if (cubes[actualCubeIndex].position.x > 1.3) {
+        } else if (cubes[actualCubeIndex].position.x > 4.5) {
           direction = 0;
         }
 
@@ -175,7 +198,7 @@ export default function App() {
             renderer.setSize(width, height);
             // renderer.setClearColor(sceneColor);
 
-            camera.position.set(3, 5, 0);
+            camera.position.set(3, 4, 3);
 
             scene.fog = new Fog(sceneColor, 1, 10000);
             scene.add(new GridHelper(10, 10));
