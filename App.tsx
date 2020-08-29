@@ -201,7 +201,7 @@ export default function App() {
             camera.position.set(3, 4, 3);
 
             scene.fog = new Fog(sceneColor, 1, 10000);
-            scene.add(new GridHelper(10, 10));
+            // scene.add(new GridHelper(10, 10));
 
             const ambientLight = new AmbientLight(0x101010);
             scene.add(ambientLight);
