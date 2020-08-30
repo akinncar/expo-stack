@@ -29,6 +29,10 @@ export default function App() {
   let timeout: number;
   let direction: number = 0;
 
+  let [fontsLoaded] = useFonts({
+    Roboto_400Regular,
+  });
+
   const [scene, setScene] = useState<Scene>(new Scene());
   const [camera, setCamera] = useState<PerspectiveCamera>(
     new PerspectiveCamera(
@@ -237,18 +241,20 @@ export default function App() {
       >
         <View style={{ flex: 1 }}>
           <View style={{ alignItems: "center", padding: 32 }}>
-            <Text
-              style={{
-                color: "#fff",
-                fontSize: 68,
-                fontFamily: "Roboto_400Regular",
-              }}
-            >
-              {score}
-            </Text>
+            {fontsLoaded && (
+              <Text
+                style={{
+                  color: "#fff",
+                  fontSize: 68,
+                  fontFamily: "Roboto_400Regular",
+                }}
+              >
+                {score}
+              </Text>
+            )}
           </View>
 
-          {!gameActive && (
+          {!gameActive && fontsLoaded && (
             <View
               style={{
                 alignSelf: "center",
