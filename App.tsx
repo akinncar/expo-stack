@@ -21,6 +21,8 @@ import {
   Text,
 } from "react-native";
 
+import { updateSpitter, randomColorRgb } from "./colors";
+
 import { useFonts, Roboto_400Regular } from "@expo-google-fonts/roboto";
 
 import { LinearGradient } from "expo-linear-gradient";
@@ -32,6 +34,12 @@ export default function App() {
   let [fontsLoaded] = useFonts({
     Roboto_400Regular,
   });
+
+  const [cubeColors, setCubeColors] = useState(() => updateSpitter());
+  const [backgroundColors] = useState<string[]>([
+    randomColorRgb(),
+    randomColorRgb(),
+  ]);
 
   const [scene, setScene] = useState<Scene>(new Scene());
   const [camera, setCamera] = useState<PerspectiveCamera>(
@@ -52,8 +60,8 @@ export default function App() {
   const [score, setScore] = useState(0);
   const [actualCubeIndex, setActualCubeIndex] = useState(0);
   const [cubes, setCubes] = useState<CubeMesh[]>([
-    new CubeMesh(1.0, 1.0, "#F46790"),
-    new CubeMesh(1.0, 1.0, "#F46790"),
+    new CubeMesh(1.0, 1.0, cubeColors[0]),
+    new CubeMesh(1.0, 1.0, cubeColors[0]),
   ]);
 
   useEffect(() => {
@@ -63,8 +71,13 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (score === cubeColors.length) {
+      addCubeColors();
+    }
+  }, [score]);
+
+  useEffect(() => {
     setActualCubeIndex(actualCubeIndex + 1);
-    console.log("cubes:", cubes);
 
     if (cubes.length == 2) {
       cubes[0].translateX(3);
@@ -78,13 +91,18 @@ export default function App() {
   }, [cubes]);
 
   useEffect(() => {
-    console.log("actualCubeIndex:", actualCubeIndex);
-
     startFrontMove();
 
     scene.add(cubes[actualCubeIndex]);
     cubes[actualCubeIndex].translateY(actualCubeIndex * 0.2 + 0.2);
   }, [actualCubeIndex]);
+
+  async function addCubeColors() {
+    var newColors = await updateSpitter(cubeColors[cubeColors.length - 1]);
+    console.log(cubeColors);
+    console.log(newColors);
+    setCubeColors([...cubeColors, ...newColors]);
+  }
 
   async function addNewCube() {
     var actualCube = cubes[cubes.length - 1];
@@ -108,6 +126,12 @@ export default function App() {
         lastCube.position.x + lastCube.scale.x / 2
     ) {
       setGameActive(false);
+
+      camera.position.setZ(camera.position.z + score);
+      pointLight.position.setZ(camera.position.z + score);
+      camera.lookAt(lastCube.position);
+      pointLight.lookAt(lastCube.position);
+
       return;
     }
 
@@ -121,7 +145,7 @@ export default function App() {
       actualCube.scale.z -
       Math.abs(actualCube.position.z - lastCube.position.z);
 
-    newCube = new CubeMesh(1, 1, "#F46790");
+    newCube = new CubeMesh(1, 1, cubeColors[score]);
 
     if (actualCubeIndex & 1) {
       actualCube.scale.set(newCubeX, newCube.scale.y, newCubeZ);
@@ -145,8 +169,6 @@ export default function App() {
 
     cubesCopy[cubes.length - 1] = actualCube;
     cubesCopy[cubes.length - 2] = lastCube;
-
-    cubesCopy.map((item) => console.log(item.scale));
 
     setCubes([...cubesCopy, newCube]);
     camera.translateY(0.18);
@@ -198,6 +220,8 @@ export default function App() {
   }
 
   async function resetGame() {
+    window.location.reload(true);
+
     await setActualCubeIndex(0);
 
     console.log(scene);
@@ -245,7 +269,10 @@ export default function App() {
   }
 
   return (
-    <LinearGradient style={{ flex: 1 }} colors={["#129fba", "#fff"]}>
+    <LinearGradient
+      style={{ flex: 1 }}
+      colors={[backgroundColors[0], backgroundColors[1]]}
+    >
       <TouchableWithoutFeedback
         style={{ flex: 1, justifyContent: "space-between" }}
         onPress={() => {
