@@ -70,9 +70,9 @@ export default function App() {
       cubes[0].translateX(3);
       cubes[0].translateZ(3);
       cubes[1].translateX(3);
-      cubes[1].translateZ(3);
+      cubes[1].translateZ(1);
 
-      camera.position.set(6, 5, 6);
+      camera.position.set(6, 4, 6);
       camera.lookAt(cubes[0].position);
     }
   }, [cubes]);
@@ -95,6 +95,8 @@ export default function App() {
     // console.log("lastCube position:", lastCube.position);
     // console.log("lastCube scale:", lastCube.scale);
 
+    stopFrontMove();
+
     if (
       actualCube.position.z - actualCube.scale.z / 2 + actualCube.scale.z <
         lastCube.position.z - lastCube.scale.z / 2 ||
@@ -105,12 +107,9 @@ export default function App() {
       actualCube.position.x + actualCube.scale.x / 2 - actualCube.scale.x >
         lastCube.position.x + lastCube.scale.x / 2
     ) {
-      stopFrontMove();
       setGameActive(false);
-      return Alert.alert("Você perdeu");
+      return;
     }
-
-    stopFrontMove();
 
     let newCube: CubeMesh;
 
@@ -130,7 +129,7 @@ export default function App() {
       actualCube.translateZ((lastCube.position.z - actualCube.position.z) / 2);
 
       newCube.scale.set(newCubeX, newCube.scale.y, newCubeZ);
-      newCube.position.setX(actualCube.position.x);
+      newCube.position.setX(actualCube.position.x - 2.0);
       newCube.position.setZ(actualCube.position.z);
     } else {
       actualCube.scale.set(newCubeX, newCube.scale.y, newCubeZ);
@@ -139,7 +138,7 @@ export default function App() {
 
       newCube.scale.set(newCubeX, newCube.scale.y, newCubeZ);
       newCube.position.setX(actualCube.position.x);
-      newCube.position.setZ(actualCube.position.z);
+      newCube.position.setZ(actualCube.position.z - 2.0);
     }
 
     let cubesCopy: CubeMesh[] = [...cubes];
@@ -150,11 +149,12 @@ export default function App() {
     cubesCopy.map((item) => console.log(item.scale));
 
     setCubes([...cubesCopy, newCube]);
-    camera.translateY(0.1);
-    camera.translateZ(0.1);
-    pointLight.translateY(0.1);
-    pointLight.translateZ(0.1);
+    camera.translateY(0.18);
+    camera.translateZ(0.18);
     camera.lookAt(cubes[cubes.length - 1].position);
+    pointLight.translateY(0.18);
+    pointLight.translateZ(0.18);
+    pointLight.lookAt(cubes[cubes.length - 1].position);
 
     setScore(score + 1);
   }
@@ -198,35 +198,48 @@ export default function App() {
   }
 
   async function resetGame() {
-    await cubes.map((cube) => scene.remove(cube));
+    await setActualCubeIndex(0);
 
-    setCamera(
-      new PerspectiveCamera(
-        25,
-        Dimensions.get("window").width / Dimensions.get("window").height,
-        0.01,
-        1000
-      )
-    );
-
-    setPointLight(new PointLight(0xffffff, 2, 1000, 1));
+    console.log(scene);
+    for (const cube of cubes) {
+      if (cube.type == "Mesh") {
+        console.log(cube);
+        cube.geometry.dispose();
+      }
+    }
+    console.log(scene);
 
     setTimer(null);
 
     setGameActive(true);
     setScore(0);
-    await setActualCubeIndex(0);
-    await setCubes([
-      new CubeMesh(1.0, 1.0, "#F46790"),
-      new CubeMesh(1.0, 1.0, "#F46790"),
-    ]);
+    // await setCubes([
+    //   await new CubeMesh(1.0, 1.0, "#F46790"),
+    //   await new CubeMesh(1.0, 1.0, "#F46790"),
+    // ]);
 
-    await cubes[0].translateY(0.2);
+    await cubes[1].translateY(0.2);
 
     await scene.add(cubes[0]);
     await scene.add(cubes[1]);
 
-    startFrontMove();
+    camera.position.set(6, 4, 6);
+    pointLight.position.set(6, 4, 6);
+
+    camera.lookAt(cubes[0].position);
+    pointLight.lookAt(cubes[0].position);
+
+    const ambientLight = new AmbientLight(0x101010);
+    scene.add(ambientLight);
+
+    pointLight.position.set(8, 4, 14);
+
+    scene.add(pointLight);
+
+    const spotLight = new SpotLight(0xffffff, 0.5);
+    spotLight.position.set(0, 500, 100);
+    spotLight.lookAt(scene.position);
+    scene.add(spotLight);
 
     return () => clearTimeout(timeout);
   }
@@ -234,13 +247,19 @@ export default function App() {
   return (
     <LinearGradient style={{ flex: 1 }} colors={["#129fba", "#fff"]}>
       <TouchableWithoutFeedback
-        style={{ flex: 1 }}
+        style={{ flex: 1, justifyContent: "space-between" }}
         onPress={() => {
           gameActive ? addNewCube() : resetGame();
         }}
       >
         <View style={{ flex: 1 }}>
-          <View style={{ alignItems: "center", padding: 32 }}>
+          <View
+            style={{
+              alignItems: "center",
+              padding: 32,
+              backgroundColor: "transparent",
+            }}
+          >
             {fontsLoaded && (
               <Text
                 style={{
@@ -286,8 +305,6 @@ export default function App() {
               const renderer = new Renderer({ gl });
               renderer.setSize(width, height);
               // renderer.setClearColor(sceneColor);
-
-              camera.position.set(3, 4, 3);
 
               scene.fog = new Fog(sceneColor, 1, 10000);
               // scene.add(new GridHelper(10, 10));
