@@ -18,7 +18,10 @@ import {
   TouchableWithoutFeedback,
   Dimensions,
   Alert,
+  Text,
 } from "react-native";
+
+import { useFonts, Roboto_400Regular } from "@expo-google-fonts/roboto";
 
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -41,6 +44,8 @@ export default function App() {
 
   const [timer, setTimer] = useState<number | any>(null);
 
+  const [gameActive, setGameActive] = useState<boolean>(true);
+  const [score, setScore] = useState(0);
   const [actualCubeIndex, setActualCubeIndex] = useState(0);
   const [cubes, setCubes] = useState<CubeMesh[]>([
     new CubeMesh(1.0, 1.0, "#F46790"),
@@ -81,18 +86,25 @@ export default function App() {
     var actualCube = cubes[cubes.length - 1];
     let lastCube = cubes[cubes.length - 2];
 
-    console.log("actualCube position:", actualCube.position);
-    console.log("actualCube scale:", actualCube.scale);
-    console.log("lastCube position:", lastCube.position);
-    console.log("lastCube scale:", lastCube.scale);
+    // console.log("actualCube position:", actualCube.position);
+    // console.log("actualCube scale:", actualCube.scale);
+    // console.log("lastCube position:", lastCube.position);
+    // console.log("lastCube scale:", lastCube.scale);
 
-    // if (
-    //   actualCube.position.z - actualCube.scale.z / 2 >
-    //   lastCube.position.z - lastCube.scale.z / 2
-    // ) {
-    //   stopFrontMove();
-    //   return Alert.alert("Você perdeu");
-    // }
+    if (
+      actualCube.position.z - actualCube.scale.z / 2 + actualCube.scale.z <
+        lastCube.position.z - lastCube.scale.z / 2 ||
+      actualCube.position.x - actualCube.scale.x / 2 + actualCube.scale.x <
+        lastCube.position.x - lastCube.scale.x / 2 ||
+      actualCube.position.z + actualCube.scale.z / 2 - actualCube.scale.z >
+        lastCube.position.z + lastCube.scale.z / 2 ||
+      actualCube.position.x + actualCube.scale.x / 2 - actualCube.scale.x >
+        lastCube.position.x + lastCube.scale.x / 2
+    ) {
+      stopFrontMove();
+      setGameActive(false);
+      return Alert.alert("Você perdeu");
+    }
 
     stopFrontMove();
 
@@ -134,8 +146,13 @@ export default function App() {
     cubesCopy.map((item) => console.log(item.scale));
 
     setCubes([...cubesCopy, newCube]);
-    camera.translateY(0.2);
-    camera.translateZ(0.2);
+    camera.translateY(0.1);
+    camera.translateZ(0.1);
+    pointLight.translateY(0.1);
+    pointLight.translateZ(0.1);
+    camera.lookAt(cubes[cubes.length - 1].position);
+
+    setScore(score + 1);
   }
 
   function startFrontMove() {
@@ -176,57 +193,124 @@ export default function App() {
     clearTimeout(timer);
   }
 
+  async function resetGame() {
+    await cubes.map((cube) => scene.remove(cube));
+
+    setCamera(
+      new PerspectiveCamera(
+        25,
+        Dimensions.get("window").width / Dimensions.get("window").height,
+        0.01,
+        1000
+      )
+    );
+
+    setPointLight(new PointLight(0xffffff, 2, 1000, 1));
+
+    setTimer(null);
+
+    setGameActive(true);
+    setScore(0);
+    await setActualCubeIndex(0);
+    await setCubes([
+      new CubeMesh(1.0, 1.0, "#F46790"),
+      new CubeMesh(1.0, 1.0, "#F46790"),
+    ]);
+
+    await cubes[0].translateY(0.2);
+
+    await scene.add(cubes[0]);
+    await scene.add(cubes[1]);
+
+    startFrontMove();
+
+    return () => clearTimeout(timeout);
+  }
+
   return (
     <LinearGradient style={{ flex: 1 }} colors={["#129fba", "#fff"]}>
       <TouchableWithoutFeedback
         style={{ flex: 1 }}
         onPress={() => {
-          addNewCube();
+          gameActive ? addNewCube() : resetGame();
         }}
       >
-        <GLView
-          style={{ flex: 1 }}
-          onContextCreate={async (gl: ExpoWebGLRenderingContext) => {
-            const {
-              drawingBufferWidth: width,
-              drawingBufferHeight: height,
-            } = gl;
-            const sceneColor = 0x129fba;
+        <View style={{ flex: 1 }}>
+          <View style={{ alignItems: "center", padding: 32 }}>
+            <Text
+              style={{
+                color: "#fff",
+                fontSize: 68,
+                fontFamily: "Roboto_400Regular",
+              }}
+            >
+              {score}
+            </Text>
+          </View>
 
-            // Create a WebGLRenderer without a DOM element
-            const renderer = new Renderer({ gl });
-            renderer.setSize(width, height);
-            // renderer.setClearColor(sceneColor);
+          {!gameActive && (
+            <View
+              style={{
+                alignSelf: "center",
+                zIndex: 0,
+              }}
+            >
+              <Text
+                style={{
+                  color: "#fff",
+                  fontSize: 68,
+                  fontFamily: "Roboto_400Regular",
+                }}
+              >
+                TAP TO RESTART
+              </Text>
+            </View>
+          )}
 
-            camera.position.set(3, 4, 3);
+          <GLView
+            style={{ flex: 1 }}
+            onContextCreate={async (gl: ExpoWebGLRenderingContext) => {
+              const {
+                drawingBufferWidth: width,
+                drawingBufferHeight: height,
+              } = gl;
+              const sceneColor = 0x129fba;
 
-            scene.fog = new Fog(sceneColor, 1, 10000);
-            // scene.add(new GridHelper(10, 10));
+              // Create a WebGLRenderer without a DOM element
+              const renderer = new Renderer({ gl });
+              renderer.setSize(width, height);
+              // renderer.setClearColor(sceneColor);
 
-            const ambientLight = new AmbientLight(0x101010);
-            scene.add(ambientLight);
+              camera.position.set(3, 4, 3);
 
-            pointLight.position.set(3, 2, 16);
+              scene.fog = new Fog(sceneColor, 1, 10000);
+              // scene.add(new GridHelper(10, 10));
 
-            scene.add(pointLight);
+              const ambientLight = new AmbientLight(0x101010);
+              scene.add(ambientLight);
 
-            const spotLight = new SpotLight(0xffffff, 0.5);
-            spotLight.position.set(0, 500, 100);
-            spotLight.lookAt(scene.position);
-            scene.add(spotLight);
+              pointLight.position.set(8, 4, 14);
 
-            camera.lookAt(cubes[0].position);
+              scene.add(pointLight);
 
-            // Setup an animation loop
-            const render = () => {
-              timeout = requestAnimationFrame(render);
-              renderer.render(scene, camera);
+              const spotLight = new SpotLight(0xffffff, 0.5);
+              spotLight.position.set(0, 500, 100);
+              spotLight.lookAt(scene.position);
+              scene.add(spotLight);
 
-              gl.endFrameEXP();
-            };
-            render();
-          }}
-        />
+              camera.lookAt(cubes[0].position);
+
+              // Setup an animation loop
+              const render = () => {
+                timeout = requestAnimationFrame(render);
+                renderer.render(scene, camera);
+
+                gl.endFrameEXP();
+              };
+              render();
+            }}
+          />
+        </View>
       </TouchableWithoutFeedback>
     </LinearGradient>
   );
