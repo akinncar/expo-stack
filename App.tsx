@@ -1,3 +1,5 @@
+import { TweenMax } from "gsap";
+
 import { ExpoWebGLRenderingContext, GLView } from "expo-gl";
 import { Renderer, TextureLoader } from "expo-three";
 import React, { useEffect, useState } from "react";
@@ -127,9 +129,15 @@ export default function App() {
     ) {
       setGameActive(false);
 
-      camera.position.setZ(camera.position.z + score);
+      TweenMax.to(camera.position, 3, {
+        x: camera.position.x + score / 3,
+        y: camera.position.y + score / 3,
+        z: camera.position.z + score / 3,
+        // onComplete: () => camera.lookAt(lastCube.position),
+      });
+
+      // camera.position.setZ(camera.position.z + score);
       pointLight.position.setZ(camera.position.z + score);
-      camera.lookAt(lastCube.position);
       pointLight.lookAt(lastCube.position);
 
       return;
@@ -171,8 +179,11 @@ export default function App() {
     cubesCopy[cubes.length - 2] = lastCube;
 
     setCubes([...cubesCopy, newCube]);
-    camera.translateY(0.18);
-    camera.translateZ(0.18);
+
+    TweenMax.to(camera.position, 1, {
+      y: camera.position.y + 0.2,
+    });
+
     camera.lookAt(cubes[cubes.length - 1].position);
     pointLight.translateY(0.18);
     pointLight.translateZ(0.18);
@@ -227,20 +238,14 @@ export default function App() {
     console.log(scene);
     for (const cube of cubes) {
       if (cube.type == "Mesh") {
-        console.log(cube);
         cube.geometry.dispose();
       }
     }
-    console.log(scene);
 
     setTimer(null);
 
     setGameActive(true);
     setScore(0);
-    // await setCubes([
-    //   await new CubeMesh(1.0, 1.0, "#F46790"),
-    //   await new CubeMesh(1.0, 1.0, "#F46790"),
-    // ]);
 
     await cubes[1].translateY(0.2);
 

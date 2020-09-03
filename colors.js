@@ -62,9 +62,9 @@ function randomIntFromInterval(min, max) {
 
 export function randomColorRgb() {
   const randomColors = [
-    randomIntFromInterval(25, 240),
-    randomIntFromInterval(25, 240),
-    randomIntFromInterval(25, 240),
+    randomIntFromInterval(50, 200),
+    randomIntFromInterval(50, 200),
+    randomIntFromInterval(50, 200),
   ];
 
   return `rgb(${randomColors[0]},${randomColors[1]},${randomColors[2]})`;
