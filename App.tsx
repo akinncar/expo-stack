@@ -1,40 +1,38 @@
-import { TweenMax } from "gsap";
+import {
+  View,
+  TouchableWithoutFeedback,
+  StyleSheet,
+  Dimensions,
+  Text,
+  SafeAreaView,
+} from 'react-native';
+import React, { useEffect, useState } from 'react';
 
-import { ExpoWebGLRenderingContext, GLView } from "expo-gl";
-import { Renderer, TextureLoader } from "expo-three";
-import React, { useEffect, useState } from "react";
 import {
   AmbientLight,
-  BoxBufferGeometry,
   Fog,
-  GridHelper,
-  Mesh,
-  MeshStandardMaterial,
   PerspectiveCamera,
   PointLight,
   Scene,
   SpotLight,
-} from "three";
-import {
-  View,
-  TouchableWithoutFeedback,
-  Dimensions,
-  Alert,
-  Text,
-} from "react-native";
+} from 'three';
+import { Renderer } from 'expo-three';
 
-import { updateSpitter, randomColorRgb } from "./colors";
+import { ExpoWebGLRenderingContext, GLView } from 'expo-gl';
+import { TweenMax } from 'gsap';
 
-import { useFonts, Roboto_400Regular } from "@expo-google-fonts/roboto";
+import { LinearGradient } from 'expo-linear-gradient';
+import { useFonts, Roboto_300Light } from '@expo-google-fonts/roboto';
 
-import { LinearGradient } from "expo-linear-gradient";
+import CubeMesh from './meshs/CubeMesh';
+import { updateSpitter, randomColorRgb } from './utils/colors';
 
-export default function App() {
+export default function App(): JSX.Element {
   let timeout: number;
-  let direction: number = 0;
+  let direction = 0;
 
-  let [fontsLoaded] = useFonts({
-    Roboto_400Regular,
+  const [fontsLoaded] = useFonts({
+    Roboto_300Light,
   });
 
   const [cubeColors, setCubeColors] = useState(() => updateSpitter());
@@ -43,21 +41,20 @@ export default function App() {
     randomColorRgb(),
   ]);
 
-  const [scene, setScene] = useState<Scene>(new Scene());
-  const [camera, setCamera] = useState<PerspectiveCamera>(
+  const [scene] = useState<Scene>(new Scene());
+  const [camera] = useState<PerspectiveCamera>(
     new PerspectiveCamera(
       25,
-      Dimensions.get("window").width / Dimensions.get("window").height,
+      Dimensions.get('window').width / Dimensions.get('window').height,
       0.01,
-      1000
-    )
+      1000,
+    ),
   );
-  const [pointLight, setPointLight] = useState<PointLight>(
-    new PointLight(0xffffff, 2, 1000, 1)
+  const [pointLight] = useState<PointLight>(
+    new PointLight(0xffffff, 2, 1000, 1),
   );
 
   const [timer, setTimer] = useState<number | any>(null);
-
   const [gameActive, setGameActive] = useState<boolean>(true);
   const [score, setScore] = useState(0);
   const [actualCubeIndex, setActualCubeIndex] = useState(0);
@@ -100,20 +97,14 @@ export default function App() {
   }, [actualCubeIndex]);
 
   async function addCubeColors() {
-    var newColors = await updateSpitter(cubeColors[cubeColors.length - 1]);
-    console.log(cubeColors);
-    console.log(newColors);
+    const newColors = await updateSpitter(cubeColors[cubeColors.length - 1]);
+
     setCubeColors([...cubeColors, ...newColors]);
   }
 
   async function addNewCube() {
-    var actualCube = cubes[cubes.length - 1];
-    let lastCube = cubes[cubes.length - 2];
-
-    // console.log("actualCube position:", actualCube.position);
-    // console.log("actualCube scale:", actualCube.scale);
-    // console.log("lastCube position:", lastCube.position);
-    // console.log("lastCube scale:", lastCube.scale);
+    const actualCube: CubeMesh = cubes[cubes.length - 1];
+    const lastCube: CubeMesh = cubes[cubes.length - 2];
 
     stopFrontMove();
 
@@ -133,27 +124,23 @@ export default function App() {
         x: camera.position.x + score / 3,
         y: camera.position.y + score / 3,
         z: camera.position.z + score / 3,
-        // onComplete: () => camera.lookAt(lastCube.position),
       });
 
-      // camera.position.setZ(camera.position.z + score);
       pointLight.position.setZ(camera.position.z + score);
       pointLight.lookAt(lastCube.position);
 
       return;
     }
 
-    let newCube: CubeMesh;
-
-    let newCubeX =
+    const newCubeX =
       actualCube.scale.x -
       Math.abs(actualCube.position.x - lastCube.position.x);
 
-    let newCubeZ =
+    const newCubeZ =
       actualCube.scale.z -
       Math.abs(actualCube.position.z - lastCube.position.z);
 
-    newCube = new CubeMesh(1, 1, cubeColors[score]);
+    const newCube = new CubeMesh(1, 1, cubeColors[score]);
 
     if (actualCubeIndex & 1) {
       actualCube.scale.set(newCubeX, newCube.scale.y, newCubeZ);
@@ -173,7 +160,7 @@ export default function App() {
       newCube.position.setZ(actualCube.position.z - 2.0);
     }
 
-    let cubesCopy: CubeMesh[] = [...cubes];
+    const cubesCopy: CubeMesh[] = [...cubes];
 
     cubesCopy[cubes.length - 1] = actualCube;
     cubesCopy[cubes.length - 2] = lastCube;
@@ -238,52 +225,23 @@ export default function App() {
 
   return (
     <LinearGradient
-      style={{ flex: 1 }}
+      style={styles.flex}
       colors={[backgroundColors[0], backgroundColors[1]]}
     >
       <TouchableWithoutFeedback
-        style={{ flex: 1, justifyContent: "space-between" }}
+        style={styles.touch}
         onPress={() => {
           gameActive ? addNewCube() : resetGame();
         }}
       >
-        <View style={{ flex: 1 }}>
-          <View
-            style={{
-              alignItems: "center",
-              padding: 32,
-              backgroundColor: "transparent",
-            }}
-          >
-            {fontsLoaded && (
-              <Text
-                style={{
-                  color: "#fff",
-                  fontSize: 68,
-                  fontFamily: "Roboto_400Regular",
-                }}
-              >
-                {score}
-              </Text>
-            )}
-          </View>
+        <View style={styles.flex}>
+          <SafeAreaView style={styles.scoreContainer}>
+            {fontsLoaded && <Text style={styles.score}>{score}</Text>}
+          </SafeAreaView>
 
           {!gameActive && fontsLoaded && (
-            <View
-              style={{
-                alignSelf: "center",
-                zIndex: 0,
-              }}
-            >
-              <Text
-                style={{
-                  color: "#fff",
-                  fontSize: 68,
-                  fontFamily: "Roboto_400Regular",
-                }}
-              >
-                TAP TO RESTART
-              </Text>
+            <View style={styles.restartContainer}>
+              <Text style={styles.restart}>TAP TO RESTART</Text>
             </View>
           )}
 
@@ -296,13 +254,10 @@ export default function App() {
               } = gl;
               const sceneColor = 0x129fba;
 
-              // Create a WebGLRenderer without a DOM element
               const renderer = new Renderer({ gl });
               renderer.setSize(width, height);
-              // renderer.setClearColor(sceneColor);
 
               scene.fog = new Fog(sceneColor, 1, 10000);
-              // scene.add(new GridHelper(10, 10));
 
               const ambientLight = new AmbientLight(0x101010);
               scene.add(ambientLight);
@@ -318,7 +273,6 @@ export default function App() {
 
               camera.lookAt(cubes[0].position);
 
-              // Setup an animation loop
               const render = () => {
                 timeout = requestAnimationFrame(render);
                 renderer.render(scene, camera);
@@ -334,14 +288,34 @@ export default function App() {
   );
 }
 
-class CubeMesh extends Mesh {
-  constructor(x: number, z: number, color: string | number) {
-    super(
-      new BoxBufferGeometry(x, 0.2, z),
-      new MeshStandardMaterial({
-        // map: new TextureLoader().load(require('./assets/icon.png')),
-        color: color,
-      })
-    );
-  }
-}
+const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+  },
+
+  touch: { flex: 1, justifyContent: 'space-between' },
+
+  scoreContainer: {
+    alignItems: 'center',
+    padding: 32,
+    backgroundColor: 'transparent',
+  },
+
+  score: {
+    color: '#fff',
+    fontSize: 68,
+    fontFamily: 'Roboto_300Light',
+  },
+
+  restartContainer: {
+    alignSelf: 'center',
+    zIndex: 0,
+  },
+
+  restart: {
+    color: '#fff',
+    fontSize: 32,
+    textAlign: 'center',
+    fontFamily: 'Roboto_300Light',
+  },
+});
