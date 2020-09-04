@@ -233,43 +233,6 @@ export default function App() {
   async function resetGame() {
     window.location.reload(true);
 
-    await setActualCubeIndex(0);
-
-    console.log(scene);
-    for (const cube of cubes) {
-      if (cube.type == "Mesh") {
-        cube.geometry.dispose();
-      }
-    }
-
-    setTimer(null);
-
-    setGameActive(true);
-    setScore(0);
-
-    await cubes[1].translateY(0.2);
-
-    await scene.add(cubes[0]);
-    await scene.add(cubes[1]);
-
-    camera.position.set(6, 4, 6);
-    pointLight.position.set(6, 4, 6);
-
-    camera.lookAt(cubes[0].position);
-    pointLight.lookAt(cubes[0].position);
-
-    const ambientLight = new AmbientLight(0x101010);
-    scene.add(ambientLight);
-
-    pointLight.position.set(8, 4, 14);
-
-    scene.add(pointLight);
-
-    const spotLight = new SpotLight(0xffffff, 0.5);
-    spotLight.position.set(0, 500, 100);
-    spotLight.lookAt(scene.position);
-    scene.add(spotLight);
-
     return () => clearTimeout(timeout);
   }
 
