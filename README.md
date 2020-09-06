@@ -16,6 +16,8 @@
   <a aria-label="subscribe on youtube" href="https://www.youtube.com/channel/UCdbUT3GEnXld4tzYRZkGVHA">Check out my youtube channel</a>
 </p>
 
+![Stack Game Native](https://media.giphy.com/media/ZazwuEcKTzcPs90WvW/giphy.gif?raw=true 'Preview Stack Game Native')
+
 ## Stack
 
 - [Expo](http://expo.io) (ios, android, web)

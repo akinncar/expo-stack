@@ -186,10 +186,10 @@ export default function Game({}): JSX.Element {
   }
 
   function tweenZ(direction: number) {
-    let multiplyScore = score > 15 ? 0.15 : score * 0.01;
+    let multiplyScore = score > 20 ? 0.2 : score * 0.01;
 
     setAnimationCube(
-      TweenMax.to(cubes[actualCubeIndex].position, 1.5 - multiplyScore, {
+      TweenMax.to(cubes[actualCubeIndex].position, 1.6 - multiplyScore, {
         z:
           direction === 0
             ? cubes[actualCubeIndex].position.z + 4
@@ -208,10 +208,10 @@ export default function Game({}): JSX.Element {
   }
 
   function tweenX(direction: number) {
-    let multiplyScore = score > 15 ? 0.15 : score * 0.01;
+    let multiplyScore = score > 20 ? 0.2 : score * 0.01;
 
     setAnimationCube(
-      TweenMax.to(cubes[actualCubeIndex].position, 1.5 - multiplyScore, {
+      TweenMax.to(cubes[actualCubeIndex].position, 1.6 - multiplyScore, {
         x:
           direction === 0
             ? cubes[actualCubeIndex].position.x + 4
