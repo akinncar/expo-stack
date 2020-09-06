@@ -1,4 +1,4 @@
-<!-- [![Expo](/.assets/header.png)](https://stackgame.netlify.com/) -->
+[![Expo](./assets/header.png)](https://stackgame.netlify.com/)
 
 <p align="center"> 
   <a aria-label="" href="/LICENSE" target="_blank">
