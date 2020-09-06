@@ -20,7 +20,7 @@ import {
 import { Renderer } from 'expo-three';
 
 import { ExpoWebGLRenderingContext, GLView } from 'expo-gl';
-import { TweenMax } from 'gsap';
+import { TweenMax, Linear } from 'gsap';
 
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -60,6 +60,7 @@ export default function Game({}): JSX.Element {
   );
 
   const [timer, setTimer] = useState<number | any>(null);
+  const [animationCube, setAnimationCube] = useState<TweenMax>();
   const [gameActive, setGameActive] = useState<boolean>(true);
   const [score, setScore] = useState(0);
   const [actualCubeIndex, setActualCubeIndex] = useState(0);
@@ -184,57 +185,65 @@ export default function Game({}): JSX.Element {
     setScore(score + 1);
   }
 
-  function startFrontMove() {
-    let multiplyScore = score > 8 ? 8 : score;
+  function tweenZ(direction: number) {
+    let multiplyScore = score > 15 ? 0.15 : score * 0.01;
 
+    setAnimationCube(
+      TweenMax.to(cubes[actualCubeIndex].position, 1.5 - multiplyScore, {
+        z:
+          direction === 0
+            ? cubes[actualCubeIndex].position.z + 4
+            : cubes[actualCubeIndex].position.z - 4,
+        ease: Linear.easeNone,
+        onComplete: () => {
+          if (cubes[actualCubeIndex].position.z < 1.5) {
+            direction = 0;
+          } else if (cubes[actualCubeIndex].position.z > 4.5) {
+            direction = 1;
+          }
+          tweenZ(direction);
+        },
+      }),
+    );
+  }
+
+  function tweenX(direction: number) {
+    let multiplyScore = score > 15 ? 0.15 : score * 0.01;
+
+    setAnimationCube(
+      TweenMax.to(cubes[actualCubeIndex].position, 1.5 - multiplyScore, {
+        x:
+          direction === 0
+            ? cubes[actualCubeIndex].position.x + 4
+            : cubes[actualCubeIndex].position.x - 4,
+        ease: Linear.easeNone,
+        onComplete: () => {
+          if (cubes[actualCubeIndex].position.x < 1.5) {
+            direction = 0;
+          } else if (cubes[actualCubeIndex].position.x > 4.5) {
+            direction = 1;
+          }
+          tweenX(direction);
+        },
+      }),
+    );
+  }
+
+  function startFrontMove() {
     if (actualCubeIndex > 0) {
       if (actualCubeIndex & 1) {
-        if (cubes[actualCubeIndex].position.z < 1.5) {
-          direction = 1;
-        } else if (cubes[actualCubeIndex].position.z > 4.5) {
-          direction = 0;
-        }
-
-        if (direction == 0) {
-          cubes[actualCubeIndex].translateZ(
-            -0.03 - Math.abs(multiplyScore * 0.001),
-          );
-        } else {
-          cubes[actualCubeIndex].translateZ(
-            +0.03 + Math.abs(multiplyScore * 0.001),
-          );
-        }
-
-        setTimer(setTimeout(startFrontMove, 12));
+        tweenZ(0);
       } else {
-        if (cubes[actualCubeIndex].position.x < 1.5) {
-          direction = 1;
-        } else if (cubes[actualCubeIndex].position.x > 4.5) {
-          direction = 0;
-        }
-
-        if (direction == 0) {
-          cubes[actualCubeIndex].translateX(
-            -0.03 - Math.abs(multiplyScore * 0.001),
-          );
-        } else {
-          cubes[actualCubeIndex].translateX(
-            +0.03 + Math.abs(multiplyScore * 0.001),
-          );
-        }
-
-        setTimer(setTimeout(startFrontMove, 12));
+        tweenX(0);
       }
     }
   }
 
   function stopFrontMove() {
-    clearTimeout(timer);
+    animationCube.pause();
   }
 
   async function resetGame() {
-    clearTimeout(timeout);
-
     navigation.reset({
       routes: [{ name: 'Stack' }],
     });
