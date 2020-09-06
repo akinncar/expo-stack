@@ -5,6 +5,7 @@ import {
   Dimensions,
   Text,
   SafeAreaView,
+  Platform,
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
 
@@ -21,13 +22,17 @@ import { Renderer } from 'expo-three';
 import { ExpoWebGLRenderingContext, GLView } from 'expo-gl';
 import { TweenMax } from 'gsap';
 
+import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFonts, Roboto_300Light } from '@expo-google-fonts/roboto';
+import * as Haptics from 'expo-haptics';
 
 import CubeMesh from './meshs/CubeMesh';
 import { updateSpitter, randomColorRgb } from './utils/colors';
 
-export default function Game(): JSX.Element {
+export default function Game({}): JSX.Element {
+  const navigation = useNavigation();
+
   let timeout: number;
   let direction = 0;
 
@@ -44,9 +49,9 @@ export default function Game(): JSX.Element {
   const [scene] = useState<Scene>(new Scene());
   const [camera] = useState<PerspectiveCamera>(
     new PerspectiveCamera(
-      25,
+      35,
       Dimensions.get('window').width / Dimensions.get('window').height,
-      0.01,
+      0.1,
       1000,
     ),
   );
@@ -71,6 +76,7 @@ export default function Game(): JSX.Element {
 
   useEffect(() => {
     if (score === cubeColors.length) {
+      Platform.OS !== 'web' && Haptics.selectionAsync();
       addCubeColors();
     }
   }, [score]);
@@ -120,14 +126,13 @@ export default function Game(): JSX.Element {
     ) {
       setGameActive(false);
 
-      TweenMax.to(camera.position, 3, {
-        x: camera.position.x + score / 3,
-        y: camera.position.y + score / 3,
-        z: camera.position.z + score / 3,
-      });
+      let multiplyY = Platform.OS === 'web' ? 8 : 14;
 
-      pointLight.position.setZ(camera.position.z + score);
-      pointLight.lookAt(lastCube.position);
+      TweenMax.to(camera.position, 3, {
+        x: camera.position.x + score / 8,
+        y: camera.position.y + score / multiplyY,
+        z: camera.position.z + score / 8,
+      });
 
       return;
     }
@@ -167,7 +172,7 @@ export default function Game(): JSX.Element {
 
     setCubes([...cubesCopy, newCube]);
 
-    TweenMax.to(camera.position, 1, {
+    TweenMax.to(camera.position, 0.8, {
       y: camera.position.y + 0.2,
     });
 
@@ -180,6 +185,8 @@ export default function Game(): JSX.Element {
   }
 
   function startFrontMove() {
+    let multiplyScore = score > 8 ? 8 : score;
+
     if (actualCubeIndex > 0) {
       if (actualCubeIndex & 1) {
         if (cubes[actualCubeIndex].position.z < 1.5) {
@@ -189,9 +196,13 @@ export default function Game(): JSX.Element {
         }
 
         if (direction == 0) {
-          cubes[actualCubeIndex].translateZ(-0.02);
+          cubes[actualCubeIndex].translateZ(
+            -0.03 - Math.abs(multiplyScore * 0.001),
+          );
         } else {
-          cubes[actualCubeIndex].translateZ(+0.02);
+          cubes[actualCubeIndex].translateZ(
+            +0.03 + Math.abs(multiplyScore * 0.001),
+          );
         }
 
         setTimer(setTimeout(startFrontMove, 12));
@@ -203,9 +214,13 @@ export default function Game(): JSX.Element {
         }
 
         if (direction == 0) {
-          cubes[actualCubeIndex].translateX(-0.02);
+          cubes[actualCubeIndex].translateX(
+            -0.03 - Math.abs(multiplyScore * 0.001),
+          );
         } else {
-          cubes[actualCubeIndex].translateX(+0.02);
+          cubes[actualCubeIndex].translateX(
+            +0.03 + Math.abs(multiplyScore * 0.001),
+          );
         }
 
         setTimer(setTimeout(startFrontMove, 12));
@@ -218,9 +233,11 @@ export default function Game(): JSX.Element {
   }
 
   async function resetGame() {
-    window.location.reload(true);
+    clearTimeout(timeout);
 
-    return () => clearTimeout(timeout);
+    navigation.reset({
+      routes: [{ name: 'Stack' }],
+    });
   }
 
   return (

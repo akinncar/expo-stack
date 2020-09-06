@@ -15,7 +15,13 @@ export default function App(): JSX.Element {
           headerShown: false,
         }}
       >
-        <Stack.Screen name="Main" component={Game} />
+        <Stack.Screen
+          name="Stack"
+          component={Game}
+          options={{
+            animationEnabled: false,
+          }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
