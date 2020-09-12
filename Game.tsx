@@ -240,7 +240,7 @@ export default function Game({}): JSX.Element {
   }
 
   function stopFrontMove() {
-    animationCube.pause();
+    animationCube.kill();
   }
 
   async function resetGame() {
