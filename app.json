@@ -5,6 +5,8 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
+    "githubUrl": "https://github.com/akinncar/expo-stack",
+    "description": "Stack game clone.",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
