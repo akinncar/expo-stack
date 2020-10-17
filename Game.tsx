@@ -6,6 +6,7 @@ import {
   Text,
   SafeAreaView,
   Platform,
+  AsyncStorage,
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
 
@@ -26,6 +27,7 @@ import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFonts, Roboto_300Light } from '@expo-google-fonts/roboto';
 import * as Haptics from 'expo-haptics';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import CubeMesh from './meshs/CubeMesh';
 import { updateSpitter, randomColorRgb } from './utils/colors';
@@ -63,6 +65,7 @@ export default function Game({}): JSX.Element {
   const [animationCube, setAnimationCube] = useState<TweenMax>();
   const [gameActive, setGameActive] = useState<boolean>(true);
   const [score, setScore] = useState(0);
+  const [scoreRecord, setScoreRecord] = useState(0);
   const [actualCubeIndex, setActualCubeIndex] = useState(0);
   const [cubes, setCubes] = useState<CubeMesh[]>([
     new CubeMesh(1.0, 1.0, cubeColors[0]),
@@ -70,6 +73,7 @@ export default function Game({}): JSX.Element {
   ]);
 
   useEffect(() => {
+    retriveScoreData();
     startFrontMove();
 
     return () => clearTimeout(timeout);
@@ -126,6 +130,13 @@ export default function Game({}): JSX.Element {
         lastCube.position.x + lastCube.scale.x / 2
     ) {
       setGameActive(false);
+
+      let currentScoreRecord = await retriveScoreData();
+
+      if (score > currentScoreRecord) {
+        storeScoreRecord(score);
+        setScoreRecord(score);
+      }
 
       let multiplyY = Platform.OS === 'web' ? 8 : 14;
 
@@ -249,6 +260,33 @@ export default function Game({}): JSX.Element {
     });
   }
 
+  async function storeScoreRecord(value: number) {
+    try {
+      await AsyncStorage.setItem(
+        '@ExpoStackGame:scoreRecord',
+        value.toString(),
+      );
+    } catch (error) {
+      // Error saving data
+    }
+  }
+
+  async function retriveScoreData() {
+    try {
+      const value = await AsyncStorage.getItem('@ExpoStackGame:scoreRecord');
+      if (value !== null) {
+        let record = parseInt(value);
+        setScoreRecord(record);
+        return record;
+      }
+
+      setScoreRecord(0);
+      return 0;
+    } catch (error) {
+      // Error retrieving data
+    }
+  }
+
   return (
     <LinearGradient
       style={styles.flex}
@@ -261,6 +299,15 @@ export default function Game({}): JSX.Element {
         }}
       >
         <View style={styles.flex}>
+          <SafeAreaView style={styles.scoreContainer}>
+            {fontsLoaded && (
+              <View style={styles.scoreRecordContainer}>
+                <MaterialCommunityIcons name="crown" size={32} color="#fff" />
+                <Text style={styles.scoreRecord}>{scoreRecord}</Text>
+              </View>
+            )}
+          </SafeAreaView>
+
           <SafeAreaView style={styles.scoreContainer}>
             {fontsLoaded && <Text style={styles.score}>{score}</Text>}
           </SafeAreaView>
@@ -319,7 +366,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  touch: { flex: 1, justifyContent: 'space-between' },
+  touch: {
+    flex: 1,
+    justifyContent: 'space-between',
+  },
 
   scoreContainer: {
     alignItems: 'center',
@@ -330,6 +380,21 @@ const styles = StyleSheet.create({
   score: {
     color: '#fff',
     fontSize: 68,
+    fontFamily: 'Roboto_300Light',
+  },
+
+  scoreRecordContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  scoreRecord: {
+    color: '#fff',
+    fontSize: 32,
     fontFamily: 'Roboto_300Light',
   },
 
