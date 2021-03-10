@@ -12,8 +12,6 @@
 
 <p align="center">
   <a aria-label="try expo crossy road in the browser" href="https://stackgame.netlify.com/"><b>Try in the Browser</b></a>
- |
-  <a aria-label="subscribe on youtube" href="https://www.youtube.com/channel/UCdbUT3GEnXld4tzYRZkGVHA">Check out my youtube channel</a>
 </p>
 
 ![Stack Game Native](https://media.giphy.com/media/ZazwuEcKTzcPs90WvW/giphy.gif?raw=true 'Preview Stack Game Native')
