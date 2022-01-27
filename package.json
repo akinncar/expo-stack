@@ -29,7 +29,7 @@
     "react-native-safe-area-context": "~3.0.7",
     "react-native-screens": "~2.9.0",
     "react-native-web": "~0.11.7",
-    "three": "^0.125.0"
+    "three": "^0.137.0"
   },
   "devDependencies": {
     "@babel/core": "^7.8.6",
