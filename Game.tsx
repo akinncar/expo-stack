@@ -6,9 +6,9 @@ import {
   Text,
   SafeAreaView,
   Platform,
-  AsyncStorage,
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage' 
 
 import {
   AmbientLight,
@@ -198,6 +198,8 @@ export default function Game({}): JSX.Element {
 
   function tweenZ(direction: number) {
     let multiplyScore = score > 20 ? 0.2 : score * 0.01;
+
+    console.log(cubes)
 
     setAnimationCube(
       TweenMax.to(cubes[actualCubeIndex].position, 1.6 - multiplyScore, {
