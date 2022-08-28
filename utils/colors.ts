@@ -104,6 +104,7 @@ export function updateSpitter(startColor?: string) {
     colors[i] = ["#", clampedR, clampedG, clampedB].join("");
   }
 
+
   return colors;
 }
 
