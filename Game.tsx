@@ -8,7 +8,7 @@ import {
   Platform,
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage' 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import {
   AmbientLight,
@@ -199,7 +199,7 @@ export default function Game({}): JSX.Element {
   function tweenZ(direction: number) {
     let multiplyScore = score > 20 ? 0.2 : score * 0.01;
 
-    console.log(cubes)
+    console.log(cubes);
 
     setAnimationCube(
       TweenMax.to(cubes[actualCubeIndex].position, 1.6 - multiplyScore, {
@@ -229,6 +229,7 @@ export default function Game({}): JSX.Element {
           direction === 0
             ? cubes[actualCubeIndex].position.x + 4
             : cubes[actualCubeIndex].position.x - 4,
+
         ease: Linear.easeNone,
         onComplete: () => {
           if (cubes[actualCubeIndex].position.x < 1.5) {
@@ -323,10 +324,8 @@ export default function Game({}): JSX.Element {
           <GLView
             style={{ flex: 1 }}
             onContextCreate={async (gl: ExpoWebGLRenderingContext) => {
-              const {
-                drawingBufferWidth: width,
-                drawingBufferHeight: height,
-              } = gl;
+              const { drawingBufferWidth: width, drawingBufferHeight: height } =
+                gl;
               const sceneColor = 0x129fba;
 
               const renderer = new Renderer({ gl });
