@@ -1,28 +1,24 @@
+import 'react-native-gesture-handler';
 import React from 'react';
 
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createDrawerNavigator } from '@react-navigation/drawer';
+import { StatusBar } from 'expo-status-bar';
 
 import Game from './Game';
 
 export default function App(): JSX.Element {
-  const Stack = createStackNavigator();
+  const Drawer = createDrawerNavigator();
 
   return (
     <NavigationContainer>
-      <Stack.Navigator
-        screenOptions={{
-          headerShown: false,
-        }}
-      >
-        <Stack.Screen
-          name="Stack"
-          component={Game}
-          options={{
-            animationEnabled: false,
-          }}
-        />
-      </Stack.Navigator>
+      <Drawer.Navigator screenOptions={{
+        headerShown: false
+      }
+      }>
+        <Drawer.Screen name="Stack" component={Game} />
+      </Drawer.Navigator>
+      <StatusBar hidden />
     </NavigationContainer>
   );
 }
